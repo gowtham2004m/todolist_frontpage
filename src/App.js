@@ -7,7 +7,8 @@ import SearchItem from './SearchItem';
 import apiRequest from './apiRequest';
 
 function App() {
-  const API_URL = 'http://localhost:3500/items';
+  const API_URL = 'https://todolist-server-65f7.onrender.com';
+  
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState('');
   const [search, setSearch] = useState('');
@@ -18,7 +19,7 @@ function App() {
     const fetchItems = async () => {
       try {
         const response = await fetch(API_URL);
-        if (!response.ok) throw new Error("Data not received");
+        if (!response.ok) throw Error("data not received");
         const listItem = await response.json();
         setItems(listItem);
         setFetchError(null);
@@ -28,7 +29,9 @@ function App() {
         setIsLoading(false);
       }
     };
-    fetchItems(); // Removed the setTimeout as it's not necessary here
+    setTimeout(() => {
+      (async () => await fetchItems())();
+    }, 2000);
   }, []);
 
   const addItem = async (item) => {
@@ -54,9 +57,9 @@ function App() {
       item.id === id ? { ...item, checked: !item.checked } : item
     );
     setItems(listItems);
-
+  
     const myItem = listItems.find((item) => item.id === id);
-
+  
     const updateOptions = {
       method: 'PATCH',
       headers: {
@@ -64,27 +67,27 @@ function App() {
       },
       body: JSON.stringify({ checked: myItem.checked }),
     };
-
+  
     const reqUrl = `${API_URL}/${id}`;
     const result = await apiRequest(reqUrl, updateOptions);
-    if (result) setFetchError(result);
+    if (result.error) setFetchError(result.error);
   };
-
+  
   const handleDelete = async (id) => {
     const listItems = items.filter((item) => item.id !== id);
     setItems(listItems);
-
+  
     const deleteOptions = {
       method: 'DELETE',
     };
     const reqUrl = `${API_URL}/${id}`;
     const result = await apiRequest(reqUrl, deleteOptions);
-    if (result) setFetchError(result);
-  };
+    if (result.error) setFetchError(result.error);
+  };  
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newItem.trim()) return; // Added trim to prevent adding empty items
+    if (!newItem) return;
     addItem(newItem);
     setNewItem('');
   };
@@ -106,9 +109,9 @@ function App() {
         {fetchError && <p>{`Error: ${fetchError}`}</p>}
         {!isLoading && !fetchError && (
           <Content
-            items={items.filter((item) =>
+            items={Array.isArray(items) ? items.filter((item) =>
               item.item.toLowerCase().includes(search.toLowerCase())
-            )}
+            ) : []}
             handleCheck={handleCheck}
             handleDelete={handleDelete}
           />
