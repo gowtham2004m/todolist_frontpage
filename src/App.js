@@ -29,62 +29,69 @@ function App() {
         setIsLoading(false);
       }
     };
-    setTimeout(() => {
-      (async () => await fetchItems())();
-    }, 2000);
+    fetchItems();
   }, []);
 
   const addItem = async (item) => {
-    const id = items.length ? items[items.length - 1].id + 1 : 1;
-    const addNewItem = { id, checked: false, item };
-    const listItems = [...items, addNewItem];
-    setItems(listItems);
-
+    const newItemObj = { item, checked: false };
     const postOptions = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(addNewItem),
+      body: JSON.stringify(newItemObj),
     };
 
-    const result = await apiRequest(API_URL, postOptions);
-    if (result) setFetchError(result);
+    try {
+      const response = await fetch(API_URL, postOptions);
+      if (!response.ok) throw Error('Failed to add item');
+      const result = await response.json();
+      setItems([...items, result]);
+      setFetchError(null);
+    } catch (err) {
+      setFetchError(err.message);
+    }
   };
 
   const handleCheck = async (id) => {
-    const listItems = items.map((item) =>
-      item.id === id ? { ...item, checked: !item.checked } : item
-    );
-    setItems(listItems);
-
-    const myItem = listItems.filter((item) => item.id === id);
+    const itemToCheck = items.find((item) => item._id === id);
+    if (!itemToCheck) return;
 
     const updateOptions = {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ checked: myItem[0].checked }),
+      body: JSON.stringify({ checked: !itemToCheck.checked }),
     };
 
-    const reqUrl = `${API_URL}/${id}`;
-    const result = await apiRequest(reqUrl, updateOptions);
-    if (result) setFetchError(result);
+    try {
+      const reqUrl = `${API_URL}/${id}`;
+      const response = await fetch(reqUrl, updateOptions);
+      if (!response.ok) throw Error('Failed to update item');
+      const updatedItem = await response.json();
+      setItems(items.map((item) => (item._id === id ? updatedItem : item)));
+      setFetchError(null);
+    } catch (err) {
+      setFetchError(err.message);
+    }
   };
 
   const handleDelete = async (id) => {
-    const listItems = items.filter((item) => item.id !== id);
-    setItems(listItems);
-
     const deleteOptions = {
-      method:'DELETE'
-    }
-    const reqUrl = `${API_URL}/${id}`;
-    const result = await apiRequest(reqUrl, deleteOptions);
-    if (result) setFetchError(result);
-  };
+      method: 'DELETE',
+    };
 
+    try {
+      const reqUrl = `${API_URL}/${id}`;
+      const response = await fetch(reqUrl, deleteOptions);
+      if (!response.ok) throw Error('Failed to delete item');
+      setItems(items.filter((item) => item._id !== id));
+      setFetchError(null);
+    } catch (err) {
+      setFetchError(err.message);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -110,9 +117,9 @@ function App() {
         {fetchError && <p>{`Error: ${fetchError}`}</p>}
         {!isLoading && !fetchError && (
           <Content
-            items={Array.isArray(items) ? items.filter((item) =>
+            items={items.filter((item) =>
               item.item.toLowerCase().includes(search.toLowerCase())
-            ) : []}
+            )}
             handleCheck={handleCheck}
             handleDelete={handleDelete}
           />
