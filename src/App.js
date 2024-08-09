@@ -7,7 +7,7 @@ import SearchItem from './SearchItem';
 import apiRequest from './apiRequest';
 
 function App() {
-  const API_URL = 'https://todolist-server-65f7.onrender.com';
+  const API_URL = 'https://todolist-server-ucfi.onrender.com';
   
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState('');
