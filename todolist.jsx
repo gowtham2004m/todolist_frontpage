@@ -3,42 +3,44 @@ import { useState } from "react";
 function ParentComp() {
     const [arr, setArr] = useState([]);
     const [inputValue, setInputValue] = useState("");
+
     function handleClick() {
-        if (inputValue !== "") {
-            setArr([...arr, inputValue]);
-            setInputValue("")
+        if (inputValue.trim() !== "") {  // Trim whitespace
+            setArr(prevArr => [...prevArr, inputValue]);
+            setInputValue("");
         }
     }
+
     function handleDeleteItems(idx) {
-        let result_arr = arr.filter((value, index) => {
-            return index !== idx;
-        });
-        setArr(result_arr);
+        setArr(prevArr => prevArr.filter((_, index) => index !== idx));
     }
+
     function handleEditItems(idx) {
-        let updatedContent = prompt("your new content");
-        if (updatedContent !== "") {
-            arr[idx] = updatedContent;
-            setArr([...arr]);
+        const updatedContent = prompt("Enter new content:", arr[idx]);
+        if (updatedContent !== null && updatedContent.trim() !== "") {
+            setArr(prevArr => prevArr.map((value, index) =>
+                index === idx ? updatedContent : value
+            ));
         }
     }
+
     return (
         <>
             <label>TODO items:</label>
-            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
-            <button onClick={handleClick}>add</button>
+            <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+            />
+            <button onClick={handleClick}>Add</button>
             <ol>
-                {
-                    arr.map((value, index) => {
-                        return (
-                            <div key={index}>
-                                <li>{value}</li>
-                                <button onClick={() => handleDeleteItems(index)}>delete</button>
-                                <button onClick={() => handleEditItems(index)}>edit</button>
-                            </div>
-                        );
-                    })
-                }
+                {arr.map((value, index) => (
+                    <li key={index}>
+                        {value}
+                        <button onClick={() => handleDeleteItems(index)}>Delete</button>
+                        <button onClick={() => handleEditItems(index)}>Edit</button>
+                    </li>
+                ))}
             </ol>
         </>
     );
