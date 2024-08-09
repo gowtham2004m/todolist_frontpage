@@ -68,8 +68,7 @@ function App() {
       body: JSON.stringify({ checked: myItem.checked }),
     };
   
-    const reqUrl = `${API_URL}/${id}`;
-    const result = await apiRequest(reqUrl, updateOptions);
+    const result = await apiRequest(`${API_URL}/${id}`, updateOptions);
     if (result.error) setFetchError(result.error);
   };
   
@@ -80,10 +79,10 @@ function App() {
     const deleteOptions = {
       method: 'DELETE',
     };
-    const reqUrl = `${API_URL}/${id}`;
-    const result = await apiRequest(reqUrl, deleteOptions);
+    const result = await apiRequest(`${API_URL}/${id}`, deleteOptions);
     if (result.error) setFetchError(result.error);
-  };  
+  };
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
